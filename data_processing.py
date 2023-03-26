@@ -11,11 +11,13 @@ def ingest(path: str) -> pd.DataFrame:
     df = pd.read_csv(path, sep=';')
     return df
 
+
 def ordinal_encoding(df: pd.DataFrame, column: str, categories: list) -> pd.DataFrame:
     encoder = OrdinalEncoder(categories=[categories], dtype=int)
     df['target_encoded'] = encoder.fit_transform(df[['y']])
     df.drop(column, axis=1, inplace=True)
     return df
+
 
 def nominal_encoding(df: pd.DataFrame) -> pd.DataFrame:
     nominal_columns = df.select_dtypes(include=['object']).columns
@@ -37,23 +39,27 @@ def outlier_detection(df):
     df.drop('is_inliner', axis=1, inplace=True)
     return df
 
-def dim_reduce(df):
+
+def dim_reduce(df) -> pd.DataFrame:
     X = df.drop('target_encoded', axis=1)
     y = df['target_encoded']
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    X_scaled
     pca = PCA(n_components=0.85)
     X_pca = pca.fit_transform(X_scaled)
-    df = X
-    return X_pca, y
+    X_pca = pd.DataFrame(X_pca)
+    y = y.reset_index(drop=True)
+    df = pd.concat([X_pca, y], axis=1, join='inner')
+    return df
 
-def split_data(df: pd.DataFrame, target: str) -> pd.DataFrame:
+
+def split_data(df: pd.DataFrame, target: str):
     X = df.drop(target, axis=1)
     y = df[target]
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
     return X_train, X_test, y_train, y_test
 
-def split_data2(X, y) -> pd.DataFrame:
+
+def split_data2(X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
     return X_train, X_test, y_train, y_test
